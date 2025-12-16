@@ -37,6 +37,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.update.outputs.changes == 'true'
+        id: cpr # <--- Added ID so we can reference it later
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,3 +49,12 @@ jobs:
             Automated update to ${{ steps.update.outputs.version }}.
 
             Verified build success.
+
+      - name: Enable Auto Merge
+        if: steps.update.outputs.changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "Auto-merging PR #$PR_NUMBER..."
+          gh pr merge "$PR_NUMBER" --auto --squash
