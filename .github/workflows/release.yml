@@ -1,0 +1,38 @@
+name: Create Release
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["package.nix"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check version change
+        id: check
+        run: |
+          OLD_VER=$(git show HEAD^:flake.nix | grep -oP 'version = "\K[^"]+' | head -1)
+          NEW_VER=$(grep -oP 'version = "\K[^"]+' flake.nix | head -1)
+
+          if [ "$OLD_VER" != "$NEW_VER" ]; then
+             echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+             echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.check.outputs.new_version }}
+        run: |
+          gh release create "$TAG" \
+            --title "GodotJS $TAG" \
+            --notes "Auto-packaged for NixOS. See upstream for changes."
