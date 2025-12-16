@@ -8,7 +8,7 @@ An auto-updating Nix Flake for [GodotJS](https://github.com/godotjs/GodotJS) —
 ## Features
 
 - **Automated Updates:** Checks upstream releases 3x weekly and auto-updates the flake via GitHub Actions.
-- **FHS Environment:** Wraps the binary in a `buildFHSEnv` to ensure compatibility with standard Linux libraries (ALSA, Vulkan, X11, etc.) on NixOS.
+- **Native Nix Build:** Patches the binary using `autoPatchelfHook` for maximum performance and native driver support (Vulkan/OpenGL).
 - **Zero Config:** Runs immediately without needing to patch binaries manually.
 - **Desktop Integration:** Includes a `.desktop` file for application menu integration.
 
@@ -112,7 +112,7 @@ To force a check for updates locally:
 
 GodotJS is distributed as a pre-compiled binary. On NixOS, standard binaries often fail because they expect libraries (like `libasound.so` or `libvulkan.so`) to be in `/usr/lib`.
 
-This package uses `buildFHSEnv` to create a bubblewrap container that mimics a standard Linux file system structure, linking the necessary Nix store libraries to expected locations. This ensures 3D acceleration and audio work correctly.
+Instead of a heavy FHS container, this flake uses `autoPatchelfHook` to modify the binary's interpreter directly. It also wraps the executable with `LD_LIBRARY_PATH` to ensure dynamic runtime dependencies (like generic system fonts and dbus) are correctly located in the Nix store.
 
 ## License
 
