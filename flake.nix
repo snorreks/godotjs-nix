@@ -43,7 +43,7 @@
     )
     // {
       # Current Version Information
-      version = "v1.1.0-pipeline-test";
+      version = "v1.1.0-web-dlink";
 
       overlays.default = final: prev: {
         godotjs = final.callPackage ./package.nix {};
