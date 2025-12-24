@@ -19,12 +19,12 @@
   zlib,
 }: let
   pname = "godotjs";
-  version = "v1.1.0-web-dlink";
+  version = "v1.1.0-editor";
   filename = "linux-editor-4.5-v8.zip";
 
   src = fetchurl {
     url = "https://github.com/godotjs/GodotJS/releases/download/${version}/${filename}";
-    sha256 = "sha256-+djE5tluLLKGyn1ImVKjoAJEBc0voHpbR7S3I9JYpx8=";
+    sha256 = "sha256-xoO8cUiEwczXVbzxFnRuwtFRKGQOyCXYntGrF4sdbA0=";
   };
 
   # Libraries Godot needs at runtime
