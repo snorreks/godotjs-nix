@@ -43,7 +43,7 @@
     )
     // {
       # Current Version Information
-      version = "v1.1.0-editor";
+      version = "v1.1.0-editor2";
 
       overlays.default = final: prev: {
         godotjs = final.callPackage ./package.nix {};
