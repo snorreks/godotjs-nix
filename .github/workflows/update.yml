@@ -31,7 +31,7 @@ jobs:
           else
             echo "changes=true" >> $GITHUB_OUTPUT
             # Extract version from last commit message
-            VERSION=$(git log -1 --pretty=%B | grep -oP 'v[0-9].*')
+            VERSION=$(git log -1 --pretty=%B | grep -oP 'v[0-9][^\s]*')
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           fi
 
