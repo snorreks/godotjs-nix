@@ -3,9 +3,10 @@ set -euo pipefail
 
 # Configuration
 REPO="godotjs/GodotJS"
-# We look for a file that starts with 'linux-editor', contains 'v8', and ends with '.zip'
-# This avoids hardcoding '4.5' or '4.5.1'
-ASSET_REGEX="linux-editor-.*-v8.zip"
+
+# STRICT REGEX: Only matches versions with numbers and dots (e.g. 4.5.1)
+# This ignores 'dev', 'beta', etc. to prevent unstable updates.
+ASSET_REGEX="linux-editor-[0-9.]+-v8.zip"
 
 echo "Fetching latest release from GitHub..."
 # Get the full JSON response first
@@ -19,17 +20,17 @@ fi
 
 echo "Latest version: $LATEST_TAG"
 
-# --- NEW: Dynamic File Detection ---
-# Parse the assets list to find the one matching our regex
+# Find the file that matches the STRICT regex
 FILE_NAME=$(echo "$RELEASE_JSON" | jq -r --arg regex "$ASSET_REGEX" '.assets[] | select(.name | test($regex)) | .name' | head -n 1)
 
 if [[ -z "$FILE_NAME" ]]; then
-    echo "Error: Could not find an asset matching pattern '$ASSET_REGEX'"
+    echo "Error: Could not find a STABLE asset matching pattern '$ASSET_REGEX'"
+    # Optional: print available assets for debugging
+    # echo "$RELEASE_JSON" | jq -r '.assets[].name'
     exit 1
 fi
 
 echo "Found target asset: $FILE_NAME"
-# -----------------------------------
 
 # Get current version from flake.nix
 CURRENT_VERSION=$(grep -oP 'version = "\K[^"]+' flake.nix | head -1)
@@ -50,15 +51,18 @@ SRI_HASH=$(nix hash to-sri --type sha256 "$NEW_HASH")
 
 echo "New Hash: $SRI_HASH"
 
-# Update Files
+# --- UPDATE FILES ---
+
+# 1. Update Version Tag in flake.nix and package.nix
 sed -i "s/version = \".*\"/version = \"$LATEST_TAG\"/" flake.nix
 sed -i "s/version = \".*\"/version = \"$LATEST_TAG\"/" package.nix
+
+# 2. Update the SRI Hash
 sed -i "s|sha256 = \".*\"|sha256 = \"$SRI_HASH\"|" package.nix
 
-# Note: If your package.nix relies on the filename (e.g. for unpacking),
-# you might need to update that too.
-# For example, if package.nix has `src = fetchurl { url = ...; }` relying on version interpolation,
-# ensure the naming convention in package.nix matches the new file.
+# 3. [CRITICAL FIX] Update the Filename in package.nix
+# This looks for the old "linux-editor-whatever-v8.zip" and replaces it with the new filename
+sed -i "s|linux-editor-.*-v8.zip|$FILE_NAME|" package.nix
 
 echo "Testing build..."
 if nix build .#default --no-link; then
