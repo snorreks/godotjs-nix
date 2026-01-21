@@ -97,7 +97,7 @@ This flake is set up to automatically track the latest releases from the GodotJS
 If you need to stay on a specific version for project stability, reference the tag in your inputs:
 
 ```nix
-inputs.godotjs-nix.url = "github:snorreks/godotjs-nix/v1.1.0-pipeline-test";
+inputs.godotjs-nix.url = "github:snorreks/godotjs-nix/v1.1.0";
 ```
 
 ### Manual Update

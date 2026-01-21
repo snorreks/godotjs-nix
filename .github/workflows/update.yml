@@ -22,17 +22,26 @@ jobs:
       - name: Run Update Script
         id: update
         run: |
+          # Capture the commit hash BEFORE running the script
+          INITIAL_HEAD=$(git rev-parse HEAD)
+
           chmod +x scripts/update-version.sh
           ./scripts/update-version.sh
 
-          # Check if we committed anything
-          if git diff --quiet HEAD^ HEAD; then
-            echo "changes=false" >> $GITHUB_OUTPUT
-          else
+          # Capture the commit hash AFTER running the script
+          FINAL_HEAD=$(git rev-parse HEAD)
+
+          # Compare the hashes to see if a NEW commit was created
+          if [[ "$INITIAL_HEAD" != "$FINAL_HEAD" ]]; then
+            echo "New commit detected."
             echo "changes=true" >> $GITHUB_OUTPUT
-            # Extract version from last commit message
+
+            # Extract version from the new commit message
             VERSION=$(git log -1 --pretty=%B | grep -oP 'v[0-9][^\s]*')
             echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "No changes detected."
+            echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Create Pull Request

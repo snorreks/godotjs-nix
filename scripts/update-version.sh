@@ -3,10 +3,14 @@ set -euo pipefail
 
 # Configuration
 REPO="godotjs/GodotJS"
-FILE_PATTERN="linux-editor-4.5-v8.zip" # This might change if Godot version bumps
+# We look for a file that starts with 'linux-editor', contains 'v8', and ends with '.zip'
+# This avoids hardcoding '4.5' or '4.5.1'
+ASSET_REGEX="linux-editor-.*-v8.zip"
 
 echo "Fetching latest release from GitHub..."
-LATEST_TAG=$(curl -s "https://api.github.com/repos/$REPO/releases" | jq -r '.[0].tag_name')
+# Get the full JSON response first
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/$REPO/releases?per_page=1" | jq '.[0]')
+LATEST_TAG=$(echo "$RELEASE_JSON" | jq -r '.tag_name')
 
 if [[ "$LATEST_TAG" == "null" || -z "$LATEST_TAG" ]]; then
     echo "Error: Could not find latest tag."
@@ -14,6 +18,18 @@ if [[ "$LATEST_TAG" == "null" || -z "$LATEST_TAG" ]]; then
 fi
 
 echo "Latest version: $LATEST_TAG"
+
+# --- NEW: Dynamic File Detection ---
+# Parse the assets list to find the one matching our regex
+FILE_NAME=$(echo "$RELEASE_JSON" | jq -r --arg regex "$ASSET_REGEX" '.assets[] | select(.name | test($regex)) | .name' | head -n 1)
+
+if [[ -z "$FILE_NAME" ]]; then
+    echo "Error: Could not find an asset matching pattern '$ASSET_REGEX'"
+    exit 1
+fi
+
+echo "Found target asset: $FILE_NAME"
+# -----------------------------------
 
 # Get current version from flake.nix
 CURRENT_VERSION=$(grep -oP 'version = "\K[^"]+' flake.nix | head -1)
@@ -27,7 +43,7 @@ fi
 echo "New version found! Updating..."
 
 # Calculate Hash
-URL="https://github.com/$REPO/releases/download/$LATEST_TAG/$FILE_PATTERN"
+URL="https://github.com/$REPO/releases/download/$LATEST_TAG/$FILE_NAME"
 echo "Prefetching URL: $URL"
 NEW_HASH=$(nix-prefetch-url --type sha256 "$URL")
 SRI_HASH=$(nix hash to-sri --type sha256 "$NEW_HASH")
@@ -38,6 +54,11 @@ echo "New Hash: $SRI_HASH"
 sed -i "s/version = \".*\"/version = \"$LATEST_TAG\"/" flake.nix
 sed -i "s/version = \".*\"/version = \"$LATEST_TAG\"/" package.nix
 sed -i "s|sha256 = \".*\"|sha256 = \"$SRI_HASH\"|" package.nix
+
+# Note: If your package.nix relies on the filename (e.g. for unpacking),
+# you might need to update that too.
+# For example, if package.nix has `src = fetchurl { url = ...; }` relying on version interpolation,
+# ensure the naming convention in package.nix matches the new file.
 
 echo "Testing build..."
 if nix build .#default --no-link; then
