@@ -19,7 +19,7 @@
   zlib,
 }: let
   pname = "godotjs";
-  version = "v1.1.0-pre-godot46rc2";
+  version = "v1.1.0-pre-old";
   filename = "linux-editor-4.5.1-v8.zip";
 
   src = fetchurl {
