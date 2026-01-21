@@ -62,7 +62,7 @@ jobs:
       - name: Enable Auto Merge
         if: steps.update.outputs.changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.MY_PAT }}
           PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
           echo "Auto-merging PR #$PR_NUMBER..."
