@@ -49,7 +49,7 @@ jobs:
         id: cpr # <--- Added ID so we can reference it later
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MY_PAT }}
           commit-message: "chore: update GodotJS to ${{ steps.update.outputs.version }}"
           title: "chore: update GodotJS to ${{ steps.update.outputs.version }}"
           branch: auto-update/${{ steps.update.outputs.version }}
