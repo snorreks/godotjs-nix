@@ -43,7 +43,7 @@
     )
     // {
       # Current Version Information
-      version = "v1.1.0-pre-old";
+      version = "v1.1.0-pre-godot46rc2";
 
       overlays.default = final: prev: {
         godotjs = final.callPackage ./package.nix {};
