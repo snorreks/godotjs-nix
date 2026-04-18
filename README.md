@@ -7,7 +7,7 @@ An auto-updating Nix Flake for [GodotJS](https://github.com/godotjs/GodotJS) —
 
 ## Features
 
-- **Automated Updates:** Checks upstream releases 3x weekly and auto-updates the flake via GitHub Actions.
+- **Automated Updates:** Checks upstream releases twice weekly (Mon/Thu) and auto-updates the flake via GitHub Actions.
 - **Native Nix Build:** Patches the binary using `autoPatchelfHook` for maximum performance and native driver support (Vulkan/OpenGL).
 - **Zero Config:** Runs immediately without needing to patch binaries manually.
 - **Desktop Integration:** Includes a `.desktop` file for application menu integration.
